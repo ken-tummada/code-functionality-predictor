@@ -8,4 +8,6 @@ dependencies = [
     "bert-score>=0.3.13",
     "datasets>=4.4.2",
     "openai>=2.15.0",
+    "python-dotenv>=1.2.1",
+    "tqdm>=4.67.1",
 ]
