@@ -1,24 +1,38 @@
-from openai import OpenAI
+"""
+Various code predictor models.
+"""
+
+from backend import LLMBackend
 
 
 class BasePredictor:
-    def __init__(self) -> None:
-        pass
+    def _predict(self, code: str) -> str:
+        raise NotImplementedError
 
-    def predict(self, code: str) -> str:
-        return code
+    def __call__(self, codes: str) -> list[str]:
+        raise NotImplementedError
 
 
 class LLMPredictor(BasePredictor):
-    def __init__(self, model: str) -> None:
-        self.client = OpenAI()
-        self.model = model
+    def __init__(self, model_name: str, *args, **kwargs) -> None:
+        self.llm_model = LLMBackend(model_name)
 
-    def predict(self, code: str) -> str:
-        prompt = ""  # TODO: write the prompt
-        response = self.client.responses.create(
-            model=self.model,
-            input=code,  # TODO: format
-        )
+    def _predict(self, code: str) -> str:
+        with open("./prompts/predictor.txt") as f:
+            prompt = f.read()
 
-        return response.output_text
+        messages = [
+            {
+                "role": "system",
+                "content": prompt,
+            },
+            {
+                "role": "user",
+                "content": code,
+            },
+        ]
+
+        return self.llm_model.query(messages)
+
+    def __call__(self, codes: str) -> list[str]:
+        return [self._predict(code) for code in codes]

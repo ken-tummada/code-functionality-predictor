@@ -1,0 +1,12 @@
+### Task
+You are given a code snippet. Explain, at a high level, what is the purpose of the code and what the code does. 
+
+### Constraints
+- Focus on the overall purpose and main logic flow only.
+- Do **not** describe implementation details line by line.
+- Do **not** explain syntax, libraries, or language-specific features unless essential to understanding the purpose.
+- Limit your response to **3–5 sentences**.
+- Assume the reader has basic programming knowledge.
+
+### Output Format
+- Output only the explanation.
