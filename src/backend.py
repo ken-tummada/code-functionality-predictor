@@ -8,7 +8,8 @@ from tenacity import (
     wait_random_exponential,
 )
 from tqdm import tqdm
-from errors import (
+
+from src.errors import (
     CostLimitExceededError,
     ContextWindowExceededError,
 )

@@ -1,0 +1,7 @@
+# Task
+
+Given the code below, write up a short description of the code. Make sure that you include the code high-level intention of the code and clear technical specifications like. Additionally, try to give a high-level goal of the code and don't explain the code line by line. Lastly, ensure that the reader can easily implement the code after reading the description.
+
+# Output Format
+
+Write in a paragraph style with no markdown styling

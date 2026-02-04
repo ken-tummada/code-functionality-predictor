@@ -1,7 +1,3 @@
-from transformers.data import metrics
-from backend import LLMBackend
-from model_mapping import model_name_mapping
-
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
@@ -9,6 +5,7 @@ from bert_score import BERTScorer
 from numpy import average
 from pydantic import BaseModel
 
+from src.backend import LLMBackend
 
 type EvalMetrics = dict
 
