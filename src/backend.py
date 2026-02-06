@@ -39,21 +39,6 @@ class LLMBackend:
 
         self.total_cost_limit = kwargs.get("total_cost_limit", 40.0)
 
-    def _setup_client(self) -> None:
-        self.model_max_input_tokens = litellm.model_cost.get(self.model_name, {}).get(
-            "max_input_tokens"
-        )
-        self.model_max_output_tokens = litellm.model_cost.get(self.model_name, {}).get(
-            "max_output_tokens"
-        )
-        self.lm_provider = litellm.model_cost.get(self.model_name, {}).get(
-            "litellm_provider"
-        )
-        if self.lm_provider is None and self.host_url is not None:
-            print(
-                f"Using a custom API base: {self.host_url}. Cost management and context length error checking will not work."
-            )
-
     def _print_stats(self) -> None:
         tqdm.write(
             f"total_tokens_sent={self.stats.tokens_sent:,}, "
@@ -121,11 +106,6 @@ class LLMBackend:
             response: litellm.types.utils.ModelResponse = litellm.completion(
                 model=self.model_name,
                 messages=messages,
-                # FIXME: remove?
-                # temperature=self.args.temperature,
-                # top_p=self.args.top_p,
-                # api_version=self.args.api_version,
-                # **completion_kwargs,
                 **extra_args,
             )
         except Exception as e:

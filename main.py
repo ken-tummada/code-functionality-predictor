@@ -14,9 +14,11 @@ from tqdm import tqdm
 import datasets
 from bert_score import BERTScorer
 
+from src.backend import LLMBackend
 from src.cli import CLIArgs
 from src.dataset import get_dataset
-from src.predictor import BasePredictor, LLMPredictor
+from src.predictor.description import DescriptionLLMPredictor
+from src.eval.desc_scorring import DescriptionScorrer
 
 
 def main(args: CLIArgs):
@@ -27,6 +29,7 @@ def main(args: CLIArgs):
     batch_size = args.batch_size
     experiment_name = args.experiment_name
     dataset_name = args.dataset
+    save_preds = args.save_outputs
     results_dir = f"./results/{experiment_name}"
 
     if batch_size == -1:
@@ -48,47 +51,35 @@ def main(args: CLIArgs):
             shutil.rmtree(results_dir)
 
     ds = get_dataset(dataset_name, sample_size, batch_size)
-    predictor = LLMPredictor(model_name=args.llm)
-    scorer = BERTScorer(lang="en")
-    f1_scores = []
+    model = DescriptionLLMPredictor(model=args.llm)
+    judge = LLMBackend("gpt-5-mini")
+    evaluator = DescriptionScorrer(
+        model,
+        ds,
+        judge,
+        save_preds=save_preds,
+        experiment_name=experiment_name,
+    )
 
+    evaluator.evaluate()
     os.mkdir(results_dir)
 
-    batch_number = 0
-    for examples in tqdm(ds, desc="Generating predictions"):
-        preds = predictor(examples["code"])
-        results = []
-        for i in range(len(preds)):
-            results.append(
-                {
-                    "ref": examples["desc"][i].strip(),
-                    "cand": preds[i].strip(),
-                }
-            )
+    print("LLM usage and costs")
+    if isinstance(model, DescriptionLLMPredictor) and model.llm_model is not None:
+        print("LLM predictor:")
+        model.llm_model._print_stats()
+    print("LLM judge:")
+    judge._print_stats()
 
-        with open(
-            f"./results/{experiment_name}/output_batch_{batch_number}.json",
-            "w",
-        ) as f:
-            json.dump(results, f)
+    with open(f"./results/{experiment_name}/summary.json", "w") as f:
+        json.dump(evaluator.compute_metrics(), f)
 
-            _, _, F1 = scorer.score(preds, examples["desc"])
-            f1_scores.append(F1.mean())
-            results = []
-            batch_number += 1
+    with open(f"./results/{experiment_name}/raw_metrics.json", "w") as f:
+        json.dump(evaluator.results, f)
 
-    if isinstance(predictor, LLMPredictor):
-        predictor.llm_model._print_stats()
-
-    mean_f1_score = mean(f1_scores)
-
-    with open(f"./results/{experiment_name}/summary.txt", "w") as f:
-        f.write(f"F1: {mean_f1_score}")
-
-    print(f"Finished experiment {experiment_name}")
-    print(f"F1:{mean_f1_score}")
+    print(f"Experiment {experiment_name} summary:\n{evaluator.compute_metrics()}")
 
 
 if __name__ == "__main__":
-    args = CLIArgs()
+    args = CLIArgs()  # type: ignore
     main(args)

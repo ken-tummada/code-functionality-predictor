@@ -1,7 +1,8 @@
 # Task
-
-Given the code below, write up a short description of the code. Make sure that you include the code high-level intention of the code and clear technical specifications like. Additionally, try to give a high-level goal of the code and don't explain the code line by line. Lastly, ensure that the reader can easily implement the code after reading the description.
+Given the code below, produce a concise technical description intended for an engineer or LLM. The description must explain the high-level purpose of the code, its intended use case, and the core technical specifications and components involved. Do not describe the code line by line. Focus on the overall design, inputs and outputs, key behaviors, and how the code should be implemented or adapted in practice. The description should be clear enough that a competent engineer could reimplement the solution based solely on your explanation.
 
 # Output Format
+Write a single paragraph with no markdown styling.
 
-Write in a paragraph style with no markdown styling
+# Code
+{code}
