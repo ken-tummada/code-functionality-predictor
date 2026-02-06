@@ -19,7 +19,7 @@ class DescriptionLLMPredictor(BasePredictor):
 
         messages = [
             {
-                "role": "system",
+                "role": "user",
                 "content": prompt.format(code=code),
             },
         ]

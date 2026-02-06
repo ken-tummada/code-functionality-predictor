@@ -71,10 +71,14 @@ def main(args: CLIArgs):
     print("LLM judge:")
     judge._print_stats()
 
-    with open(f"./results/{experiment_name}/summary.json", "w") as f:
+    file_path = f"./results/{experiment_name}/summary.json"
+    with open(file_path, "w") as f:
+        print(f"Saving experiment summary to {file_path}")
         json.dump(evaluator.compute_metrics(), f)
 
-    with open(f"./results/{experiment_name}/raw_metrics.json", "w") as f:
+    file_path = f"./results/{experiment_name}/raw.json"
+    with open(file_path, "w") as f:
+        print(f"Saving raw results to {file_path}")
         json.dump(evaluator.results, f)
 
     print(f"Experiment {experiment_name} summary:\n{evaluator.compute_metrics()}")
