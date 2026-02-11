@@ -16,9 +16,9 @@ from src.errors import (
 
 _MAX_RETRIES = 10
 MODEL_MAPPINGS = {
+    "none": "none",
     "sonnet-4.5": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "gpt-5-mini": "gpt-5-mini",
-    "deepseek-r1": "bedrock/arn:aws:bedrock:us-east-1:463470961764:inference-profile/us.deepseek.r1-v1:0",
     "llama-3-8b": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
 }
 
@@ -31,6 +31,7 @@ class LLMBackend:
         api_calls: int = 0
 
     def __init__(self, model_name: str, *args, **kwargs) -> None:
+        self.alias = model_name
         self.model_name = MODEL_MAPPINGS[model_name]
         self.model_max_input_tokens = 1_000
         self.host_url = kwargs.get("host_url", "")
@@ -83,6 +84,9 @@ class LLMBackend:
         ),
     )
     def query(self, messages: list[Any]) -> str:
+        if self.model_name == "none":
+            return "".join([m["content"] for m in messages if m["role"] == "user"])
+
         input_tokens: int = litellm.token_counter(
             messages=messages, model=self.model_name
         )

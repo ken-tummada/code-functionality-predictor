@@ -18,10 +18,10 @@ from src.backend import LLMBackend
 from src.cli import CLIArgs
 from src.dataset import get_dataset
 from src.predictor.description import DescriptionLLMPredictor
-from src.eval.desc_scorring import DescriptionScorrer
+from src.eval.desc_scorring import DescriptionEvaluator
 
 
-def main(args: CLIArgs):
+def main(args: CLIArgs) -> None:
     load_dotenv()
     warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 
@@ -50,13 +50,15 @@ def main(args: CLIArgs):
             print("Info: removing old results.")
             shutil.rmtree(results_dir)
 
-    ds = get_dataset(dataset_name, sample_size, batch_size)
-    model = DescriptionLLMPredictor(model=args.llm)
-    judge = LLMBackend("gpt-5-mini")
-    evaluator = DescriptionScorrer(
+    dataloader = get_dataset(dataset_name, sample_size, batch_size)
+    model = DescriptionLLMPredictor(
+        model=args.llm,
+        experiment_name=experiment_name,
+    )
+    evaluator = DescriptionEvaluator(
         model,
-        ds,
-        judge,
+        args.judges,
+        dataloader,
         save_preds=save_preds,
         experiment_name=experiment_name,
     )
@@ -65,11 +67,12 @@ def main(args: CLIArgs):
     os.mkdir(results_dir)
 
     print("LLM usage and costs")
-    if isinstance(model, DescriptionLLMPredictor) and model.llm_model is not None:
+    if isinstance(model, DescriptionLLMPredictor):
         print("LLM predictor:")
         model.llm_model._print_stats()
     print("LLM judge:")
-    judge._print_stats()
+    for judge in evaluator.judges:
+        judge._print_stats()
 
     file_path = f"./results/{experiment_name}/summary.json"
     with open(file_path, "w") as f:
@@ -81,9 +84,15 @@ def main(args: CLIArgs):
         print(f"Saving raw results to {file_path}")
         json.dump(evaluator.results, f)
 
-    print(f"Experiment {experiment_name} summary:\n{evaluator.compute_metrics()}")
+    print(f"Experiment {experiment_name} summary:")
+    for judge, metrics in evaluator.compute_metrics().items():
+        print(f"{judge}: {metrics}")
 
 
 if __name__ == "__main__":
     args = CLIArgs()  # type: ignore
-    main(args)
+
+    if not args.eval:
+        main(args)
+    else:
+        eval(args)

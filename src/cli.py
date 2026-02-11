@@ -6,15 +6,20 @@ from src.dataset import DATASET_MAPPING
 
 
 class CLIArgs(BaseSettings, cli_parse_args=True):
-    experiment_name: str
+    experiment_name: str = "test"
     sample_size: int = 4
     batch_size: int = 2
     dataset: str = Field("CFFI", alias="ds", examples=list(DATASET_MAPPING.keys()))
     llm: str = Field("gpt-5-mini", examples=list(MODEL_MAPPINGS.keys()))
+    judges: list[str] = Field(
+        [model for model in MODEL_MAPPINGS if model != "none"],
+        description=str(list(MODEL_MAPPINGS.keys())),
+    )
 
     verbose: bool = False
     override: bool = False
     save_outputs: bool = False
+    eval: bool = False
 
     model_config = SettingsConfigDict(
         cli_shortcuts={
@@ -30,10 +35,20 @@ class CLIArgs(BaseSettings, cli_parse_args=True):
     @field_validator("llm", mode="before")
     @classmethod
     def validate_llm_alias(cls, value: str) -> str:
-        if value not in MODEL_MAPPINGS and value != "none":
+        if value not in MODEL_MAPPINGS:
             raise ValueError(
-                f"{value} is not a valid model alias. Valid model alias are {list(MODEL_MAPPINGS.keys()) + ['none']}"
+                f"{value} is not a valid model alias. Valid model alias are {list(MODEL_MAPPINGS.keys())}"
             )
+        return value
+
+    @field_validator("judges", mode="before")
+    @classmethod
+    def validate_judges_alias(cls, value: list[str]) -> list[str]:
+        for judge in value:
+            if judge not in MODEL_MAPPINGS:
+                raise ValueError(
+                    f"{value} is not a valid judge alias. Valid judge alias are {list(MODEL_MAPPINGS.keys())}"
+                )
         return value
 
     @field_validator("dataset", mode="before")

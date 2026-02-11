@@ -1,1 +1,1 @@
-{"intention": 4.0, "technical_specs": 4.0, "abstraction_level": 3.25, "implementation_ease": 4.0}
+{"sonnet-4.5": {"intention": 4.0, "technical_specs": 4.0, "abstraction_level": 3.0, "implementation_ease": 4.0}, "gpt-5-mini": {"intention": 4.0, "technical_specs": 3.5, "abstraction_level": 3.0, "implementation_ease": 3.75}, "llama-3-8b": {"intention": 4.0, "technical_specs": 3.75, "abstraction_level": 3.0, "implementation_ease": 3.25}}
