@@ -19,7 +19,7 @@ MODEL_MAPPINGS = {
     "none": "none",
     "sonnet-4.5": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "gpt-5-mini": "gpt-5-mini",
-    "llama-3-8b": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
+    "llama-3.1-8b": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
 }
 
 
