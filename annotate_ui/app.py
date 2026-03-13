@@ -6,9 +6,8 @@ import io
 import os
 import glob
 
-st.set_page_config(page_title="Text Annotation Tool", layout="centered")
+st.set_page_config(page_title="Text Annotation Tool", layout="wide")
 
-ANNOTATION_FILE_OUTPUT = "annotations.csv"
 
 if "annotations" not in st.session_state:
     st.session_state.annotations = {}
@@ -20,7 +19,7 @@ if "logged_in" not in st.session_state:
 
 def save_annotations(corpus, criteria):
     output = io.StringIO()
-    headers = ["user_name", "id"] + list(criteria.keys())
+    headers = ["user_name", "id"] + [v["alias"] for v in criteria.values()]
     writer = csv.DictWriter(output, fieldnames=headers)
     writer.writeheader()
 
@@ -30,8 +29,9 @@ def save_annotations(corpus, criteria):
         scores = st.session_state.annotations.get(item_id, {})
         if scores:
             row = {"user_name": user_name, "id": item_id}
-            for criterion in criteria.keys():
-                row[criterion] = scores.get(criterion, "")
+            for criterion_key, config in criteria.items():
+                alias = config["alias"]
+                row[alias] = scores.get(alias, "")
             writer.writerow(row)
 
     return output.getvalue()
@@ -39,8 +39,8 @@ def save_annotations(corpus, criteria):
 
 @st.cache_data
 def load_corpus_and_criteria():
-    ds_loc = "data/"
-    criteria_file = "criteria.yml"
+    ds_loc = "annotate_ui/data/"
+    criteria_file = "annotate_ui/criteria.yml"
 
     json_files = glob.glob(os.path.join(ds_loc, "**/*.json"), recursive=True)
     corpus = []
@@ -57,14 +57,13 @@ def load_corpus_and_criteria():
     with open(criteria_file, "r") as f:
         criteria = yaml.safe_load(f)
 
-    # TODO: shuffle data, also find a way to resume session, idk how. Mb set a seed and do shuffle?
-    # random.shuffle(corpus)
     return corpus, criteria
 
 
 corpus, criteria = load_corpus_and_criteria()
 
 if not st.session_state.logged_in:
+    st.set_page_config(layout="centered")
     st.title("Hello!")
     with st.form("login_form"):
         name = st.text_input("Name")
@@ -87,7 +86,6 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-st.set_page_config(page_title="Text Annotation Tool", layout="wide")
 
 current_idx = st.session_state.current_idx
 total = len(corpus)
@@ -115,9 +113,11 @@ with col_criteria:
     scores = st.session_state.annotations.get(item_id, {})
 
     new_scores = {}
-    for criterion, options in criteria.items():
-        label = f"{criterion}"
-        value_desc = scores.get(criterion)
+    for criterion, config in criteria.items():
+        alias = config["alias"]
+        options = config["scores"]
+        label = criterion
+        value_desc = scores.get(alias)
         if value_desc is not None:
             default_idx = next(
                 (i for i, opt in enumerate(options) if opt[1] == value_desc), 0
@@ -125,9 +125,9 @@ with col_criteria:
         else:
             default_idx = 0
         choices = [f"{opt[0]}: {opt[1]}" for opt in options]
-        selected = st.selectbox(label, choices, index=default_idx, key=criterion)
+        selected = st.selectbox(label, choices, index=default_idx, key=alias)
         value = int(selected.split(":")[0])
-        new_scores[criterion] = value
+        new_scores[alias] = value
 
     st.session_state.annotations[item_id] = new_scores
 
@@ -154,12 +154,13 @@ with col_criteria:
             st.rerun()
 
     annotation_data = save_annotations(corpus, criteria)
+    file_name = "annotations.csv"
     if st.download_button(
         "Download Annotations",
         annotation_data,
-        file_name=ANNOTATION_FILE_OUTPUT,
+        file_name=file_name,
         mime="text/csv",
         icon=":material/download:",
         width="stretch",
     ):
-        st.success(f"Annotation saved as {ANNOTATION_FILE_OUTPUT}!", icon="🎉")
+        st.success(f"Annotation saved as {file_name}!", icon="🎉")

@@ -28,7 +28,7 @@ dev = [
 [tool.poe.tasks]
 lint = "ruff check ."
 format = "ruff format ."
-ui = "streamlit run annotate_ui/app.py"
+start = "streamlit run annotate_ui/app.py"
 
 
 [tool.ruff.format]
