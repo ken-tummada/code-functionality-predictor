@@ -3,17 +3,7 @@ Given the code below, produce a concise technical description intended for an en
 
 # Output Format
 
-Write in markdown format using the following structure:
-```
-# Overview
-[overview]
-
-# Usage
-[usage]
-
-# Technical Specifications
-[specs]
-```
+Write a single paragraph with no markdown styling.
 
 # Code
 {code}
