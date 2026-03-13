@@ -1,22 +1,10 @@
 [project]
-name = "code-predictor"
+name = "code-predictor-annotation-ui"
 version = "0.1.0"
 description = "Add your description here"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "bert-score>=0.3.13",
-    "boto3>=1.42.33",
-    "datasets>=4.4.2",
-    "litellm>=1.80.16",
-    "polars>=1.38.1",
-    "pydantic>=2.12.5",
-    "pydantic-settings>=2.12.0",
-    "python-dotenv>=1.2.1",
-    "seaborn>=0.13.2",
     "streamlit>=1.55.0",
-    "tenacity>=9.1.2",
-    "tqdm>=4.67.1",
 ]
 
 [dependency-groups]
@@ -25,10 +13,11 @@ dev = [
     "ruff>=0.15.4",
 ]
 
+
 [tool.poe.tasks]
 lint = "ruff check ."
 format = "ruff format ."
-ui = "streamlit run annotate_ui/app.py"
+start = "streamlit run app.py"
 
 
 [tool.ruff.format]

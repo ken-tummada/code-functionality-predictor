@@ -3,10 +3,10 @@ import json
 import yaml
 import csv
 import io
+import os
 import glob
-import random
 
-st.set_page_config(page_title="Text Annotation Tool")
+st.set_page_config(page_title="Text Annotation Tool", layout="centered")
 
 ANNOTATION_FILE_OUTPUT = "annotations.csv"
 
@@ -39,23 +39,20 @@ def save_annotations(corpus, criteria):
 
 @st.cache_data
 def load_corpus_and_criteria():
-    data = [
-        ("outputs/desc-gen-gpt-5-mini", "gpt-5-mini"),
-        ("outputs/desc-gen-llama-3-8b", "llama-3.1-8b"),
-        ("outputs/desc-gen-sonnet-4.5", "sonnet-4.5"),
-    ]
-    criteria_file = "annotate_ui/criteria.yml"
+    ds_loc = "data/"
+    criteria_file = "criteria.yml"
 
+    json_files = glob.glob(os.path.join(ds_loc, "**/*.json"), recursive=True)
     corpus = []
-
-    for dir, name in data:
-        predictions = []
-        for file_name in glob.glob(f"{dir}/*.json"):
-            with open(file_name, "r") as f:
-                predictions.extend(json.load(f)["preds"])
-
-        for i, pred in enumerate(predictions):
-            corpus.append({"id": f"{name}-{i}", "text": pred})
+    for filepath in sorted(json_files):
+        rel_path = os.path.relpath(filepath, ds_loc)
+        parts = rel_path.split(os.sep)
+        folder_name = parts[0]
+        with open(filepath, "r") as f:
+            data = json.load(f)
+        preds = data.get("preds", [])
+        for idx, pred in enumerate(preds):
+            corpus.append({"id": f"{folder_name}-{idx}", "text": pred})
 
     with open(criteria_file, "r") as f:
         criteria = yaml.safe_load(f)
@@ -68,7 +65,7 @@ def load_corpus_and_criteria():
 corpus, criteria = load_corpus_and_criteria()
 
 if not st.session_state.logged_in:
-    st.title("Login")
+    st.title("Hello!")
     with st.form("login_form"):
         name = st.text_input("Name")
         starting_idx = st.number_input("Jump to", min_value=1, max_value=len(corpus))
@@ -78,7 +75,19 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.current_idx = starting_idx - 1
             st.rerun()
+
+    with st.expander("How to annotate", expanded=True):
+        st.markdown("""
+        1. **Read the text** - Carefully read the description and code in the Corpus section
+        2. **Rate each criterion** - Use the dropdown menus to select a score (1-5) for each criterion
+        3. **Navigate** - Use Previous/Next buttons to move between items
+        4. **Track progress** - Your progress is shown at the top
+        5. **Download** - Click "Download Annotations" to save your work as CSV
+        """)
+
     st.stop()
+
+st.set_page_config(page_title="Text Annotation Tool", layout="wide")
 
 current_idx = st.session_state.current_idx
 total = len(corpus)
@@ -94,61 +103,63 @@ st.progress(progress)
 st.write(f"{current_idx + 1} / {total} annotated")
 
 
-st.subheader("Corpus")
-with st.container(border=True):
-    st.markdown(item["text"])
+col_corpus, col_criteria = st.columns(2)
 
+with col_corpus:
+    st.subheader("Corpus")
+    with st.container(border=True, height=560):
+        st.markdown(item["text"])
 
-st.subheader("Criteria")
-scores = st.session_state.annotations.get(item_id, {})
+with col_criteria:
+    st.subheader("Criteria")
+    scores = st.session_state.annotations.get(item_id, {})
 
-new_scores = {}
-for criterion, options in criteria.items():
-    label = f"{criterion}"
-    value_desc = scores.get(criterion)
-    if value_desc is not None:
-        default_idx = next(
-            (i for i, opt in enumerate(options) if opt[1] == value_desc), 0
-        )
-    else:
-        default_idx = 0
-    choices = [f"{opt[0]}: {opt[1]}" for opt in options]
-    selected = st.selectbox(label, choices, index=default_idx, key=criterion)
-    value = int(selected.split(":")[0])
-    new_scores[criterion] = value
+    new_scores = {}
+    for criterion, options in criteria.items():
+        label = f"{criterion}"
+        value_desc = scores.get(criterion)
+        if value_desc is not None:
+            default_idx = next(
+                (i for i, opt in enumerate(options) if opt[1] == value_desc), 0
+            )
+        else:
+            default_idx = 0
+        choices = [f"{opt[0]}: {opt[1]}" for opt in options]
+        selected = st.selectbox(label, choices, index=default_idx, key=criterion)
+        value = int(selected.split(":")[0])
+        new_scores[criterion] = value
 
-st.session_state.annotations[item_id] = new_scores
+    st.session_state.annotations[item_id] = new_scores
 
-col_prev, col_next = st.columns(2)
-with col_prev:
-    if st.button(
-        "Previous",
-        disabled=current_idx == 0,
+    col_prev, col_next = st.columns(2)
+    with col_prev:
+        if st.button(
+            "Previous",
+            disabled=current_idx == 0,
+            width="stretch",
+            icon=":material/arrow_back_ios:",
+        ):
+            st.session_state.current_idx -= 1
+            st.rerun()
+
+    with col_next:
+        if st.button(
+            "Next",
+            disabled=current_idx == total - 1,
+            width="stretch",
+            icon=":material/arrow_forward_ios:",
+            type="primary",
+        ):
+            st.session_state.current_idx += 1
+            st.rerun()
+
+    annotation_data = save_annotations(corpus, criteria)
+    if st.download_button(
+        "Download Annotations",
+        annotation_data,
+        file_name=ANNOTATION_FILE_OUTPUT,
+        mime="text/csv",
+        icon=":material/download:",
         width="stretch",
-        icon=":material/arrow_back_ios:",
     ):
-        st.session_state.current_idx -= 1
-        st.rerun()
-
-with col_next:
-    if st.button(
-        "Next",
-        disabled=current_idx == total - 1,
-        width="stretch",
-        icon=":material/arrow_forward_ios:",
-        type="primary",
-    ):
-        st.session_state.current_idx += 1
-        st.rerun()
-
-
-annotation_data = save_annotations(corpus, criteria)
-if st.download_button(
-    "Download Annotations",
-    annotation_data,
-    file_name=ANNOTATION_FILE_OUTPUT,
-    mime="text/csv",
-    icon=":material/download:",
-    width="stretch",
-):
-    st.success(f"Annotation saved as {ANNOTATION_FILE_OUTPUT}!", icon="🎉")
+        st.success(f"Annotation saved as {ANNOTATION_FILE_OUTPUT}!", icon="🎉")

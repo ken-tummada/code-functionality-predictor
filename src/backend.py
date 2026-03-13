@@ -9,16 +9,14 @@ from tenacity import (
 )
 from tqdm import tqdm
 
-from src.errors import (
-    CostLimitExceededError,
-    ContextWindowExceededError,
-)
+from src.errors import CostLimitExceededError, ContextWindowExceededError
 
 _MAX_RETRIES = 10
 MODEL_MAPPINGS = {
     "none": "none",
     "sonnet-4.5": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "gpt-5-mini": "gpt-5-mini",
+    "gpt-5": "gpt-5",
     "llama-3.1-8b": "bedrock/arn:aws:bedrock:us-east-1:288380904485:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
 }
 
@@ -33,7 +31,7 @@ class LLMBackend:
     def __init__(self, model_name: str, *args, **kwargs) -> None:
         self.alias = model_name
         self.model_name = MODEL_MAPPINGS[model_name]
-        self.model_max_input_tokens = 1_000
+        self.model_max_input_tokens = 2_000
         self.host_url = kwargs.get("host_url", "")
         self.lm_provider = "openai"
         self.stats = self.Stats()
@@ -45,7 +43,7 @@ class LLMBackend:
             f"total_tokens_sent={self.stats.tokens_sent:,}, "
             f"total_tokens_received={self.stats.tokens_received:,}, "
             f"total_cost={self.stats.total_cost:.2f}, "
-            f"total_api_calls={self.stats.api_calls:,}",
+            f"total_api_calls={self.stats.api_calls:,}"
         )
 
     def _update_stats(
@@ -71,17 +69,15 @@ class LLMBackend:
         wait=wait_random_exponential(min=60, max=180),
         reraise=True,
         stop=stop_after_attempt(_MAX_RETRIES),
-        retry=retry_if_not_exception_type(
-            (
-                CostLimitExceededError,
-                RuntimeError,
-                litellm.exceptions.UnsupportedParamsError,
-                litellm.exceptions.NotFoundError,
-                litellm.exceptions.PermissionDeniedError,
-                litellm.exceptions.ContextWindowExceededError,
-                litellm.exceptions.APIError,
-            )
-        ),
+        retry=retry_if_not_exception_type((
+            CostLimitExceededError,
+            RuntimeError,
+            litellm.exceptions.UnsupportedParamsError,
+            litellm.exceptions.NotFoundError,
+            litellm.exceptions.PermissionDeniedError,
+            litellm.exceptions.ContextWindowExceededError,
+            litellm.exceptions.APIError,
+        )),
     )
     def query(self, messages: list[Any]) -> str:
         if self.model_name == "none":
@@ -108,9 +104,7 @@ class LLMBackend:
 
         try:
             response: litellm.types.utils.ModelResponse = litellm.completion(
-                model=self.model_name,
-                messages=messages,
-                **extra_args,
+                model=self.model_name, messages=messages, **extra_args
             )
         except Exception as e:
             print("Error during LLM query:\n")

@@ -3,7 +3,7 @@ Given the code below, produce a concise technical description intended for an en
 
 # Output Format
 
-Write in markdown format using the following structure:
+Write in markdown format using the following structure (keep each section concise and do not give code example):
 ```
 # Overview
 [overview]

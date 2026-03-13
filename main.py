@@ -89,10 +89,16 @@ def main(args: CLIArgs) -> None:
         print(f"{judge}: {metrics}")
 
 
+def eval():
+    pass
+
+
 if __name__ == "__main__":
     args = CLIArgs()  # type: ignore
 
+    # TODO: break up inference and eval
+    # TODO: save summary of run
     if not args.eval:
-        main(args)
-    else:
-        eval(args)
+        pass
+
+    main(args)
