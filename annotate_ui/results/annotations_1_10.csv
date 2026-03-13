@@ -1,0 +1,11 @@
+user_name,id,How well does the description capture the code's high-level intention (real-world context may be used when relevant)?,How clear are the technical specifications after reading the description?,At what level of abstraction does the description operate?,"How easily could an engineer implement the described logic, assuming sufficient technical skill?"
+Ken Thampiratwong,gpt-5-mini-0,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-1,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-2,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-3,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-4,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-5,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-6,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-7,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-8,4,4,4,4
+Ken Thampiratwong,gpt-5-mini-9,4,4,4,4

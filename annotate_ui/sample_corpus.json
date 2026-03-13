@@ -1,0 +1,5 @@
+[
+  {"id": "1", "text": "This is the first sample text for annotation."},
+  {"id": "2", "text": "Here is another text that needs to be evaluated based on the criteria."},
+  {"id": "3", "text": "This is the third item in your corpus."}
+]
